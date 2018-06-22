@@ -44,13 +44,7 @@ public class SwebleWikimarkupToCategory extends SwebleWikimarkupParserBase<Wikip
         TreeSet<String> categoryAliases = this.config.getNamespace("category").getAliases();
         SwebleCategoryAstWalker walker = new SwebleCategoryAstWalker(config, categoryAliases.first());
         String text = (String)walker.go(cp.getPage());
-        text = text.replaceAll("\\(\\s*\\)", " ");
-        text = text.replaceAll(" {2,}", " ");
-        text = text.replaceAll("\n{2,}", "\n\n");
-        text = trimLineStartFix.matcher(text).replaceAll("");
-        text = trimLineEndFix.matcher(text).replaceAll("");
-        text = text.trim();
-
+        text= "\n"+text;
         return new WikipediaPage(page, text);
     }
 }
