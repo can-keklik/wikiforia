@@ -9,6 +9,8 @@ import se.lth.cs.nlp.mediawiki.model.Page;
 import se.lth.cs.nlp.mediawiki.model.WikipediaPage;
 import se.lth.cs.nlp.pipeline.*;
 import se.lth.cs.nlp.wikipedia.lang.TemplateConfig;
+import se.lth.cs.nlp.wikipedia.parser.SwebleWikimarkupParserBase;
+import se.lth.cs.nlp.wikipedia.parser.SwebleWikimarkupToCategory;
 import se.lth.cs.nlp.wikipedia.parser.SwebleWikimarkupToText;
 
 import java.text.NumberFormat;
@@ -29,6 +31,7 @@ public class Pipeline {
     protected final ArrayList<Filter<WikipediaPage>> filters = new ArrayList<Filter<WikipediaPage>>();
     protected final TemplateConfig config;
     protected final boolean test;
+    protected String mode = "text";
 
     public Pipeline(Source<Page, Void> source, Sink<WikipediaPage> target, TemplateConfig config) {
         this(source,target,config,false);
@@ -49,6 +52,12 @@ public class Pipeline {
         this.filters.addAll(filters);
     }
 
+    public void setMode(String mode) {
+        if(this.mode.equals("text") || this.mode.equals("cats")) {
+            this.mode = mode;
+        }
+    }
+
     public static class MergedFilter extends Filter<WikipediaPage> {
         private final List<Filter<WikipediaPage>> pages;
 
@@ -67,6 +76,13 @@ public class Pipeline {
 
             return accept;
         }
+    }
+
+    public SwebleWikimarkupParserBase getConverter(TemplateConfig config){
+        if(this.mode.equals("cats")){
+            return new SwebleWikimarkupToCategory(config);
+        }
+        return new SwebleWikimarkupToText(config);
     }
 
     public void run() {
@@ -134,7 +150,7 @@ public class Pipeline {
                             count.addAndGet(batch.size());
                         }
                     })
-                    .pipe(new SwebleWikimarkupToText(config))
+                    .pipe(this.getConverter(config))
                     .sendLog(new Sink<String>() {
                         @Override
                         public void process(List<String> batch) {

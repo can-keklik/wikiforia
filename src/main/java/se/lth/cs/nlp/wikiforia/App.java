@@ -122,9 +122,20 @@ public class App
             .withArgName("outputformat")
             .create("outputformat");
 
+    private static final Option extractionMode = OptionBuilder.withLongOpt("extractionmode")
+            .withDescription("Extraction mode : text or cats")
+            .hasArg()
+            .withArgName("extractionmode")
+            .create("exm");
+
     private static final String OUTPUT_FORMAT_XML = "xml";
     private static final String OUTPUT_FORMAT_PLAIN_TEXT = "plain-text";
     private static final String OUTPUT_FORMAT_DEFAULT = OUTPUT_FORMAT_XML;
+
+
+    private static final String EXMODE_TEXT = "text";
+    private static final String EXMODE_CATS = "cats";
+    private static final String EXMODE_DEFAULT = EXMODE_TEXT;
 
     /**
      * Used to invoke the hadoop conversion internally
@@ -209,7 +220,7 @@ public class App
             int numThreads,
             int batchsize)
     {
-        convert(config, indexPath, pagesPath, outputPath, numThreads, batchsize, OUTPUT_FORMAT_DEFAULT);
+        convert(config, indexPath, pagesPath, outputPath, numThreads, batchsize, EXMODE_DEFAULT, OUTPUT_FORMAT_DEFAULT);
     }
 
     /**
@@ -229,6 +240,7 @@ public class App
             File outputPath,
             int numThreads,
             int batchsize,
+            String exMode,
             String outputFormat)
     {
         Source<Page,Void> source;
@@ -271,7 +283,7 @@ public class App
             int batchsize,
             ArrayList<Filter<WikipediaPage>> filters)
     {
-        convert(config, indexPath, pagesPath, outputPath, numThreads, batchsize, filters, OUTPUT_FORMAT_DEFAULT);
+        convert(config, indexPath, pagesPath, outputPath, numThreads, batchsize, filters, EXMODE_DEFAULT, OUTPUT_FORMAT_DEFAULT);
     }
 
     /**
@@ -293,6 +305,7 @@ public class App
             int numThreads,
             int batchsize,
             ArrayList<Filter<WikipediaPage>> filters,
+            String exMode,
             String outputFormat)
     {
         Source<Page,Void> source;
@@ -303,6 +316,7 @@ public class App
             source = new MultistreamBzip2XmlDumpParser(indexPath, pagesPath, batchsize, numThreads);
 
         Pipeline pipeline = new Pipeline(source, getSink(outputFormat, outputPath), config);
+        pipeline.setMode(exMode);
         pipeline.appendAllFilters(filters);
         pipeline.run();
     }
@@ -345,6 +359,7 @@ public class App
         options.addOption(testDecompression);
         options.addOption(filterNs);
         options.addOption(outputFormatOption);
+        options.addOption(extractionMode);
 
         CommandLineParser parser = new PosixParser();
         try {
@@ -354,6 +369,7 @@ public class App
             int batchsize = 100;
             int numThreads = Runtime.getRuntime().availableProcessors();
             String outputFormat = OUTPUT_FORMAT_DEFAULT;
+            String exMode = EXMODE_DEFAULT;
 
             //Read batch size
             if(cmdline.hasOption(batch.getOpt())) {
@@ -369,6 +385,12 @@ public class App
             if(cmdline.hasOption(outputFormatOption.getOpt())) {
                 outputFormat = cmdline.getOptionValue(outputFormatOption.getOpt());
             }
+
+            //Extraction mode
+            if(cmdline.hasOption(extractionMode.getOpt())) {
+                exMode = cmdline.getOptionValue(extractionMode.getOpt());
+            }
+
 
             //Read required paths
             pagesPath = new File(cmdline.getOptionValue(pages.getOpt()));
@@ -485,7 +507,7 @@ public class App
                     test(config, indexPath, pagesPath, numThreads, batchsize);
                 }
                 else {
-                    convert(config,indexPath,pagesPath, outputPath, numThreads, batchsize, filters, outputFormat);
+                    convert(config,indexPath,pagesPath, outputPath, numThreads, batchsize, filters, exMode, outputFormat);
                 }
             }
 
