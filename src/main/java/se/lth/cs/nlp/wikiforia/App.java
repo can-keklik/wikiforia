@@ -30,6 +30,7 @@ import se.lth.cs.nlp.mediawiki.parser.SinglestreamXmlDumpParser;
 import se.lth.cs.nlp.pipeline.Filter;
 import se.lth.cs.nlp.pipeline.Sink;
 import se.lth.cs.nlp.pipeline.Source;
+import se.lth.cs.nlp.wikipedia.lang.EnConfig;
 import se.lth.cs.nlp.wikipedia.lang.EnglishConfig;
 import se.lth.cs.nlp.wikipedia.lang.LangFactory;
 import se.lth.cs.nlp.wikipedia.lang.TemplateConfig;
@@ -483,7 +484,7 @@ public class App
                     throw new RuntimeException(e);
                 }
             } else {
-                config = new EnglishConfig();
+                config = new EnConfig();
                 logger.error("language {} is not yet supported and will be defaulted to a English setting for Sweble.", langId);
                 langId = "en";
             }

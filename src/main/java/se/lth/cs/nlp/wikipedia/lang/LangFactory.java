@@ -86,6 +86,7 @@ import java.util.HashMap;
 		languages.put("el", ElConfig.class);
 		languages.put("eml", EmlConfig.class);
 		languages.put("en", EnConfig.class);
+		languages.put("simple", SimpleConfig.class);
 		languages.put("eo", EoConfig.class);
 		languages.put("es", EsConfig.class);
 		languages.put("et", EtConfig.class);
