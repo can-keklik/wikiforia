@@ -31,6 +31,8 @@ import java.util.List;
 public abstract class SwebleWikimarkupParserBase<T> extends Mapper<Page,T,Page> {
     protected final WikiConfig config;
 
+    protected boolean parse = true;
+
     public SwebleWikimarkupParserBase(TemplateConfig config) {
         this.config = config.get();
     }
@@ -45,14 +47,27 @@ public abstract class SwebleWikimarkupParserBase<T> extends Mapper<Page,T,Page> 
         throw new UnsupportedOperationException();
     }
 
+    protected T extractWithoutParse(Page page) {
+        throw new UnsupportedOperationException();
+    }
+
+    protected T getPrepared(Page page) {
+        throw new UnsupportedOperationException();
+    }
+
     public T parse(Page page) {
         try {
-            return extract(page, SwebleParserUtil.parsePage(
-                    config,
-                    page.getTitle(),
-                    page.getRevision(),
-                    page.getContent())
-            );
+            if(parse) {
+                return extract(page, SwebleParserUtil.parsePage(
+                        config,
+                        page.getTitle(),
+                        page.getRevision(),
+                        page.getContent())
+                );
+            }else{
+                return extractWithoutParse(page);
+            }
+
         }
         catch (Exception ex)
         {

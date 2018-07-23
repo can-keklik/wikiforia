@@ -24,6 +24,7 @@ import se.lth.cs.nlp.mediawiki.model.Page;
 import se.lth.cs.nlp.mediawiki.model.WikipediaPage;
 import se.lth.cs.nlp.wikipedia.lang.TemplateConfig;
 
+import java.util.ArrayList;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 
@@ -34,6 +35,7 @@ public class SwebleWikimarkupToCategory extends SwebleWikimarkupParserBase<Wikip
 
     public SwebleWikimarkupToCategory(TemplateConfig config) {
         super(config);
+        this.parse=false;
     }
 
     private final Pattern trimLineStartFix = Pattern.compile("^[\\t ]+", Pattern.MULTILINE);
@@ -46,5 +48,52 @@ public class SwebleWikimarkupToCategory extends SwebleWikimarkupParserBase<Wikip
         String text = (String)walker.go(cp.getPage());
         text= "\n"+text;
         return new WikipediaPage(page, text);
+    }
+
+    protected WikipediaPage extractWithoutParse(Page page) {
+        TreeSet<String> categoryAliases = this.config.getNamespace("category").getAliases();
+        String text = "\n"+ matchCategories(page.getContent(), categoryAliases.first());
+        return new WikipediaPage(page, text);
+    }
+
+    protected String matchCategories(String content, String categoryAlias){
+        char[] haystack = content.toCharArray();
+        char[] needle = ("[["+categoryAlias+":").toCharArray();
+        ArrayList<Integer> pins = new ArrayList<Integer>();
+        for(int i=0; i<haystack.length-needle.length;i++){
+            int j=0;
+            boolean brk=false;
+            while(j<needle.length && !brk) {
+                if (haystack[i + j] == needle[j]) {
+                    j++;
+                }else{
+                    brk=true;
+                }
+            }
+            if(!brk){
+                pins.add(i);
+            }
+        }
+        String out="";
+        for(int starting:pins){
+            int i=starting+needle.length;
+            while((haystack[i]!=']' && haystack[i+1]!=']')){
+                i++;
+            }
+            int ending = i;
+            String cat = "";
+            boolean fault=false;
+            for(int j=starting+2;j<=ending && !fault;j++){
+                cat+=haystack[j];
+                if(haystack[j]=='[' || haystack[j]==']'){
+                    fault=true;
+                }
+            }
+            if(!fault) {
+                cat = cat.split("\\|")[0];
+                out+=cat.trim()+"\n";
+            }
+        }
+        return out;
     }
 }
