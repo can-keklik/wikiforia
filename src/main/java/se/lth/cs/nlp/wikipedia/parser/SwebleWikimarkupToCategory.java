@@ -25,6 +25,7 @@ import se.lth.cs.nlp.mediawiki.model.WikipediaPage;
 import se.lth.cs.nlp.wikipedia.lang.TemplateConfig;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 
@@ -84,14 +85,19 @@ public class SwebleWikimarkupToCategory extends SwebleWikimarkupParserBase<Wikip
             String cat = "";
             boolean fault=false;
             for(int j=starting+2;j<=ending && !fault;j++){
-                cat+=haystack[j];
+                cat += haystack[j];
                 if(haystack[j]=='[' || haystack[j]==']'){
+                    fault=true;
+                }
+                if(haystack[j]=='{' || haystack[j]=='}'){
                     fault=true;
                 }
             }
             if(!fault) {
-                cat = cat.split("\\|")[0];
-                out+=cat.trim()+"\n";
+                cat = cat.split("\\|")[0].trim();
+                if(!cat.equals("")) {
+                    out += cat + "\n";
+                }
             }
         }
         return out;

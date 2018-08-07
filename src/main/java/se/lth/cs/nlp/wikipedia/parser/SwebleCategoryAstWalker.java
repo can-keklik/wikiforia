@@ -72,7 +72,7 @@ public class SwebleCategoryAstWalker extends AstVisitor<WtNode> {
         for(WtNode sub:n){
             if(sub instanceof WtInternalLink) {
                 WtText text = (WtText)sub.get(0).get(0);
-                String content = text.getContent();
+                String content = text.getContent().trim();
                 if(content.startsWith(this.categoryAlias)){
                     sb.append(content+"\n");
                 }
