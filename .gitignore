@@ -1,7 +1,7 @@
-*.xml
 *.txt
 .idea/*
 target/*
 *.wf
 images/
 todo
+waste/
