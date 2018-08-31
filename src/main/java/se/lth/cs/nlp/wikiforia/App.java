@@ -69,6 +69,11 @@ public class App
             .withDescription("set the number of threads to use, defaults to available processors as given by Runtime.getRuntime()")
             .create("t");
 
+    private static final Option templates = OptionBuilder.withLongOpt("templates")
+            .hasArg()
+            .withDescription("Path to templates file")
+            .create("p");
+
     @SuppressWarnings("static-access")
     private static final Option batch = OptionBuilder.withLongOpt("batch-size")
             .hasArg()
@@ -124,7 +129,7 @@ public class App
             .create("outputformat");
 
     private static final Option extractionMode = OptionBuilder.withLongOpt("extractionmode")
-            .withDescription("Extraction mode : text or cats")
+            .withDescription("Extraction mode : text or cats or tl")
             .hasArg()
             .withArgName("extractionmode")
             .create("exm");
@@ -136,6 +141,7 @@ public class App
 
     private static final String EXMODE_TEXT = "text";
     private static final String EXMODE_CATS = "cats";
+    private static final String EXMODE_TL = "tl";
     private static final String EXMODE_DEFAULT = EXMODE_TEXT;
 
     /**
@@ -284,7 +290,7 @@ public class App
             int batchsize,
             ArrayList<Filter<WikipediaPage>> filters)
     {
-        convert(config, indexPath, pagesPath, outputPath, numThreads, batchsize, filters, EXMODE_DEFAULT, OUTPUT_FORMAT_DEFAULT);
+        convert(config, indexPath, pagesPath, outputPath, numThreads, batchsize, filters, EXMODE_DEFAULT, null, OUTPUT_FORMAT_DEFAULT);
     }
 
     /**
@@ -307,6 +313,7 @@ public class App
             int batchsize,
             ArrayList<Filter<WikipediaPage>> filters,
             String exMode,
+            String templatesFile,
             String outputFormat)
     {
         Source<Page,Void> source;
@@ -318,6 +325,7 @@ public class App
 
         Pipeline pipeline = new Pipeline(source, getSink(outputFormat, outputPath), config);
         pipeline.setMode(exMode);
+        pipeline.setTemplatesFile(templatesFile);
         pipeline.appendAllFilters(filters);
         pipeline.run();
     }
@@ -352,6 +360,7 @@ public class App
         options.addOption(index);
         options.addOption(pages);
         options.addOption(threads);
+        options.addOption(templates);
         options.addOption(batch);
         options.addOption(output);
         options.addOption(lang);
@@ -371,6 +380,7 @@ public class App
             int numThreads = Runtime.getRuntime().availableProcessors();
             String outputFormat = OUTPUT_FORMAT_DEFAULT;
             String exMode = EXMODE_DEFAULT;
+            String templatesFile = null;
 
             //Read batch size
             if(cmdline.hasOption(batch.getOpt())) {
@@ -390,6 +400,10 @@ public class App
             //Extraction mode
             if(cmdline.hasOption(extractionMode.getOpt())) {
                 exMode = cmdline.getOptionValue(extractionMode.getOpt());
+            }
+
+            if(cmdline.hasOption(templates.getOpt())) {
+                templatesFile = cmdline.getOptionValue(templates.getOpt());
             }
 
 
@@ -508,7 +522,7 @@ public class App
                     test(config, indexPath, pagesPath, numThreads, batchsize);
                 }
                 else {
-                    convert(config,indexPath,pagesPath, outputPath, numThreads, batchsize, filters, exMode, outputFormat);
+                    convert(config,indexPath,pagesPath, outputPath, numThreads, batchsize, filters, exMode, templatesFile, outputFormat);
                 }
             }
 

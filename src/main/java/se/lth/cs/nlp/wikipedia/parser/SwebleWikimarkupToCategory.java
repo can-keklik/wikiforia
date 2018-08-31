@@ -16,6 +16,7 @@
  */
 package se.lth.cs.nlp.wikipedia.parser;
 
+import org.apache.commons.collections.set.UnmodifiableSet;
 import org.sweble.wikitext.engine.config.I18nAlias;
 import org.sweble.wikitext.engine.nodes.EngPage;
 import org.sweble.wikitext.engine.nodes.EngProcessedPage;
@@ -24,9 +25,11 @@ import se.lth.cs.nlp.mediawiki.model.Page;
 import se.lth.cs.nlp.mediawiki.model.WikipediaPage;
 import se.lth.cs.nlp.wikipedia.lang.TemplateConfig;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.TreeSet;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
@@ -34,9 +37,18 @@ import java.util.regex.Pattern;
  */
 public class SwebleWikimarkupToCategory extends SwebleWikimarkupParserBase<WikipediaPage> {
 
+    private boolean templates = false;
+    private Set allowedTags = null;
+
     public SwebleWikimarkupToCategory(TemplateConfig config) {
         super(config);
         this.parse=false;
+    }
+
+    public SwebleWikimarkupToCategory(TemplateConfig config, boolean templates) {
+        super(config);
+        this.parse=false;
+        this.templates = true;
     }
 
     private final Pattern trimLineStartFix = Pattern.compile("^[\\t ]+", Pattern.MULTILINE);
@@ -51,15 +63,49 @@ public class SwebleWikimarkupToCategory extends SwebleWikimarkupParserBase<Wikip
         return new WikipediaPage(page, text);
     }
 
+    public void constructAllowedTags(String path){
+        HashSet<String> tags = new HashSet<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                tags.add(line.trim());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        this.allowedTags = Collections.unmodifiableSet(tags);
+    }
+
     protected WikipediaPage extractWithoutParse(Page page) {
         TreeSet<String> categoryAliases = this.config.getNamespace("category").getAliases();
-        String text = "\n"+ matchCategories(page.getContent(), categoryAliases.first());
+        String text = null;
+        if(this.templates){
+            text = "\n"+ matchTemplates(page.getContent());
+        }else{
+            text = "\n"+ matchCategories(page.getContent(), categoryAliases.first());
+            if(allowedTags!=null){
+                text += matchTags(page.getContent());
+            }
+        }
         return new WikipediaPage(page, text);
     }
 
     protected String matchCategories(String content, String categoryAlias){
+        return match(content,"[["+categoryAlias,"]]", true,null,null);
+    }
+
+    protected String matchTemplates(String content){
+
+        return match(content,"{{tl|","}}", false,null ,null);
+    }
+    protected String matchTags(String content){
+        return match(content,"{{","}}", false, allowedTags, "Graph!Tag:");
+    }
+
+    protected String match(String content, String prefix, String suffix, boolean splitPipes, Set allowedContent, String cpref){
         char[] haystack = content.toCharArray();
-        char[] needle = ("[["+categoryAlias+":").toCharArray();
+        char[] closing = suffix.toCharArray();
+        char[] needle = (prefix).toCharArray();
         ArrayList<Integer> pins = new ArrayList<Integer>();
         for(int i=0; i<haystack.length-needle.length;i++){
             int j=0;
@@ -75,31 +121,55 @@ public class SwebleWikimarkupToCategory extends SwebleWikimarkupParserBase<Wikip
                 pins.add(i);
             }
         }
-        String out="";
+        StringBuilder out = new StringBuilder();
         for(int starting:pins){
             int i=starting+needle.length;
-            while((haystack[i]!=']' && haystack[i+1]!=']')){
-                i++;
-            }
-            int ending = i;
-            String cat = "";
+            boolean closingFound=false;
+            do {
+                boolean different=false;
+                int length = closing.length;
+                for (int k=0;(k<length && !different);k++){
+                    if(haystack[i+k]!=closing[k]){
+                        different = true;
+                    }
+                }
+                if(different){
+                    i++;
+                }else{
+                    closingFound = true;
+                }
+            }while(!closingFound);
+
+            StringBuilder cat = new StringBuilder();
             boolean fault=false;
-            for(int j=starting+2;j<=ending && !fault;j++){
-                cat += haystack[j];
-                if(haystack[j]=='[' || haystack[j]==']'){
+            for(int j=starting+2;j<i && !fault;j++){
+                cat.append(haystack[j]);
+                /*if(haystack[j]=='[' || haystack[j]==']'){
                     fault=true;
                 }
                 if(haystack[j]=='{' || haystack[j]=='}'){
                     fault=true;
-                }
+                }*/
+            }
+            if(allowedContent!=null && !allowedContent.contains(cat.toString()))
+            {
+                fault=true;
             }
             if(!fault) {
-                cat = cat.split("\\|")[0].trim();
-                if(!cat.equals("")) {
-                    out += cat + "\n";
+                String catF = null;
+                if(splitPipes) {
+                    catF = cat.toString().split("\\|")[0].trim();
+                }else{
+                    catF = cat.toString().trim();
+                }
+                if(cpref!=null){
+                    catF=cpref+catF;
+                }
+                if(!catF.equals("")) {
+                    out.append(catF).append("\n");
                 }
             }
         }
-        return out;
+        return out.toString();
     }
 }

@@ -32,6 +32,7 @@ public class Pipeline {
     protected final TemplateConfig config;
     protected final boolean test;
     protected String mode = "text";
+    protected String templatesFile = null;
 
     public Pipeline(Source<Page, Void> source, Sink<WikipediaPage> target, TemplateConfig config) {
         this(source,target,config,false);
@@ -53,9 +54,11 @@ public class Pipeline {
     }
 
     public void setMode(String mode) {
-        if(this.mode.equals("text") || this.mode.equals("cats")) {
-            this.mode = mode;
-        }
+        this.mode = mode;
+    }
+
+    public void setTemplatesFile(String file) {
+        this.templatesFile = file;
     }
 
     public static class MergedFilter extends Filter<WikipediaPage> {
@@ -79,10 +82,20 @@ public class Pipeline {
     }
 
     public SwebleWikimarkupParserBase getConverter(TemplateConfig config){
+
         if(this.mode.equals("cats")){
-            return new SwebleWikimarkupToCategory(config);
+            SwebleWikimarkupToCategory parser = new SwebleWikimarkupToCategory(config);
+            if(this.templatesFile!=null){
+                parser.constructAllowedTags(this.templatesFile);
+            }
+            return parser;
         }
-        return new SwebleWikimarkupToText(config);
+        else if(this.mode.equals("tl")){
+            return new SwebleWikimarkupToCategory(config, true);
+        }else{
+            return new SwebleWikimarkupToText(config);
+        }
+
     }
 
     public void run() {
