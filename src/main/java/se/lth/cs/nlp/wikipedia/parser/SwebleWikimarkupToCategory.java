@@ -84,7 +84,7 @@ public class SwebleWikimarkupToCategory extends SwebleWikimarkupParserBase<Wikip
         }else{
             text = "\n"+ matchCategories(page.getContent(), categoryAliases.first());
             if(allowedTags!=null){
-                text += matchTags(page.getContent());
+                text += matchTags(page.getContent()) + matchTemplates(page.getContent());
             }
         }
         return new WikipediaPage(page, text);
