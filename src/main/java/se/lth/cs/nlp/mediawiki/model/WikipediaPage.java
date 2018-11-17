@@ -23,7 +23,7 @@ public class WikipediaPage extends Page {
     private final String text;
 
     public WikipediaPage(Page page, String text) {
-        super(page.getHeader(), page.getId(), page.getTitle(), page.getContent(), page.getRevision(), page.getNamespace(), page.getFormat());
+        super(page.getHeader(), page.getId(), page.getTitle(), page.getContent(), page.getRevision(), page.getNamespace(), page.getFormat(), page.getRedirectTo());
         this.text = text;
     }
 

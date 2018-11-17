@@ -187,6 +187,7 @@ public class XmlDumpParser
         public String pageModel = "";
         public String pageFormat = "";
         public long wikiPageId = -1;
+        public String redirectTo = null;
         public ArrayDeque<Page> pagesRead = new ArrayDeque<Page>();
 
         public void resetPage()
@@ -199,6 +200,7 @@ public class XmlDumpParser
             wikiPageId = -1;
             pageModel = "";
             pageFormat = "";
+            redirectTo = null;
         }
 
         public boolean isStartElement() {
@@ -242,6 +244,14 @@ public class XmlDumpParser
                         try
                         {
                             state.wikiPageId = Long.parseLong(reader.getElementText());
+                        } catch(NumberFormatException nfe) {
+                            nfe.printStackTrace();
+                        }
+                    } else if(localName.equals("redirect")) {
+                        try
+                        {
+                            state.redirectTo = reader.getAttributeValue(null,"title");
+                            // System.out.println("REDIRECTION ["+state.pageTitle + " => " +state.redirectTo+"]");
                         } catch(NumberFormatException nfe) {
                             nfe.printStackTrace();
                         }
@@ -309,7 +319,8 @@ public class XmlDumpParser
                 state.pageText,
                 state.pageTimestamp,
                 state.pageNamespace,
-                state.pageFormat
+                state.pageFormat,
+                state.redirectTo
         );
 
         state.resetPage();

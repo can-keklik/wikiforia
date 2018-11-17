@@ -29,12 +29,13 @@ public class Page implements Serializable {
     private long revision;
     private int namespace;
     private String format;
+    private String redirectTo;
 
     protected Page() {
 
     }
 
-    public Page(Header head, long id, String title, String content, long revision, int namespace, String format) {
+    public Page(Header head, long id, String title, String content, long revision, int namespace, String format, String redirectTo) {
         this.header = head;
         this.id = id;
         this.title = title;
@@ -42,6 +43,7 @@ public class Page implements Serializable {
         this.revision = revision;
         this.namespace = namespace;
         this.format = format;
+        this.redirectTo = redirectTo;
     }
 
     public long getId() {
@@ -62,6 +64,10 @@ public class Page implements Serializable {
 
     public String getFormat() {
         return format;
+    }
+
+    public String getRedirectTo() {
+        return redirectTo;
     }
 
     public int getNamespace() {

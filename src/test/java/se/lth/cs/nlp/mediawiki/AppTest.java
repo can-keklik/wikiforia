@@ -56,12 +56,12 @@ public class AppTest extends TestCase
     }
 
     public Page readAlfredArticle() {
-        Page page = new Page(null, 1L, "Alfred Nobel", readArticle("alfred_nobel"), 123L, 0, "text/x-wiki");
+        Page page = new Page(null, 1L, "Alfred Nobel", readArticle("alfred_nobel"), 123L, 0, "text/x-wiki", null);
         return page;
     }
 
     public Page readHelsingborgArticle() {
-        Page page = new Page(null, 1L, "Helsingborg", readArticle("helsingborg"), 123L, 0, "text/x-wiki");
+        Page page = new Page(null, 1L, "Helsingborg", readArticle("helsingborg"), 123L, 0, "text/x-wiki", null);
         return page;
     }
 

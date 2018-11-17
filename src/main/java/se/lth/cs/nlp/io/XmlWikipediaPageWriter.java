@@ -75,6 +75,10 @@ public class XmlWikipediaPageWriter implements Sink<WikipediaPage> {
                     writer.writeAttribute("revision", String.valueOf(wikipediaPage.getRevision()));
                     writer.writeAttribute("type", String.valueOf(wikipediaPage.getFormat()));
                     writer.writeAttribute("ns-id", String.valueOf(wikipediaPage.getNamespace()));
+                    String redirectTo = wikipediaPage.getRedirectTo();
+                    if (redirectTo != null){
+                        writer.writeAttribute("redirect", String.valueOf(redirectTo));
+                    }
 
                     String name = wikipediaPage.getHeader().getSiteinfo().getNamespaces().get(wikipediaPage.getNamespace());
                     if (name == null)
