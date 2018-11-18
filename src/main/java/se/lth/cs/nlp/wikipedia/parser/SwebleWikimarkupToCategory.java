@@ -42,12 +42,12 @@ public class SwebleWikimarkupToCategory extends SwebleWikimarkupParserBase<Wikip
 
     public SwebleWikimarkupToCategory(TemplateConfig config) {
         super(config);
-        this.parse=false;
+        this.parse=true;
     }
 
     public SwebleWikimarkupToCategory(TemplateConfig config, boolean templates) {
         super(config);
-        this.parse=false;
+        this.parse=true;
         this.templates = true;
     }
 
